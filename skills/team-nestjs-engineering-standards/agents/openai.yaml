@@ -1,0 +1,4 @@
+interface:
+  display_name: "Team NestJS Engineering Standards"
+  short_description: "Deep NestJS review and engineering standards"
+  default_prompt: "Use $team-nestjs-engineering-standards to deeply review this NestJS change for failures, API impact, compatibility, security, and team standards."
