@@ -133,6 +133,11 @@ authorId: integer('author_id').references(() => users.id),
 ]
 ```
 
+## Query-Driven Audits & Covering Indexes (`INCLUDE`)
+
+- Audit indexes against actual application queries and drop unused indexes to prevent write amplification.
+- For hot read paths where Drizzle supports key indexes but `INCLUDE (...)` covering columns are needed in PostgreSQL, add the covering `CREATE INDEX ... INCLUDE (...)` in a SQL migration alongside narrowed `.select({ ... })` projections, and avoid placing frequently updated columns inside `INCLUDE` so PostgreSQL HOT updates remain intact.
+
 ## References
 
 - https://orm.drizzle.team/docs/indexes-constraints

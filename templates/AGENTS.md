@@ -18,6 +18,9 @@ Single source of truth for coding agents (Codex, Claude Code, Antigravity / Gemi
 - Inspect `package.json`, the lockfile, `nest-cli.json`, `tsconfig.json`, and existing modules before proposing or applying changes; keep changes scoped and never run broad unrequested migrations.
 - Follow `team-nestjs-engineering-standards` for new and modified code:
   - kebab-case filenames; `_`-prefixed private members (treat renaming untouched legacy private members as a separate `MIGRATION_TARGET`).
+  - Explicit role-suffixed naming everywhere: `*.entity.ts` (`UserEntity`), `*.schema.ts`, `*.util.ts`, `*.mapper.ts`, `*.constants.ts`, `*.types.ts`, `*.schemas.ts`, and full domain-qualified injected members (`_walletService`, `_databaseService`, `_configService` — never vague `_service`, `_db`, `_config`, or bare entity filenames).
+  - Strict file separation of concerns: keep types, constants, Zod/runtime schemas, pure helpers, mappers, and request vs. response DTOs in separate focused files rather than inside service/controller/guard/filter files.
+  - Query-driven & covering indexes: audit indexes against real queries/constraints, drop unused indexes, prefer `INCLUDE (...)` covering indexes paired with narrow `SELECT` projections, and keep hot mutable columns out of `INCLUDE` to preserve HOT updates.
   - Strict decorator order: Routing -> Permission metadata -> Guards -> Interceptors/Pipes -> OpenAPI decorators -> Status code.
   - `[Entity][Operation][BriefDescription]Dto` naming for new/modified DTOs.
   - Update Swagger/OpenAPI (`@nestjs/swagger`) in the same change as every HTTP contract change.

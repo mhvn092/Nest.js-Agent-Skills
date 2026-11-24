@@ -6,6 +6,10 @@ Treat these rules as `REQUIRED` for new and modified code:
 
 - Use `kebab-case` for directories and filenames.
 - Use `file-name.[type].ts`, such as `user.controller.ts`.
+- Use explicit domain/role suffixes on every file, class, schema, entity, type, and injected private member (`REQUIRED` — never bare generic names):
+  - Entities/schemas/tables: `UserEntity` (`user.entity.ts`), `accounts.schema.ts` — never bare `user.ts` or unsuffixed `accounts.ts`.
+  - Helpers, mappers, constants, types, and runtime schemas: `*.util.ts`, `*.mapper.ts`, `*.constants.ts`, `*.types.ts`, `*.schemas.ts`.
+  - Injected private members: full domain-qualified role name (`this._walletService`, `this._databaseService`, `this._configService`, `this._idempotencyService`, `this._amqpBrokerClient`) — never vague `this._service`, `this._db`, `this._config`, `this._repo`, or `this._client`.
 - Use `PascalCase` for classes, interfaces, enums, and custom types.
 - Do not prefix interfaces with `I`.
 - Use `camelCase` for public methods, properties, functions, variables, and parameters.
@@ -38,6 +42,12 @@ Apply renaming to untouched legacy code only as a `MIGRATION_TARGET`.
 
 Prefer feature modules under `src/modules/<feature>/`. Put genuinely cross-cutting code under
 `src/shared/`.
+
+Enforce strict file separation of concerns (`REQUIRED`):
+
+- Do not mix types, module constants, Zod/runtime schemas, pure utility functions, mappers, or combined request/response DTOs into service, controller, guard, or filter files.
+- Extract each concern into focused sibling files (`*.types.ts`, `*.constants.ts`, `*.schemas.ts`, `*.mapper.ts`, `*.util.ts`, and separate request vs. response DTO files).
+- Promote helpers or constants used across multiple modules to `src/common/utils/` (or `src/shared/utils/`) and `src/common/constants/` (or `src/shared/constants/`).
 
 Use root-level module or library barrels only when the project already uses barrels safely. Avoid
 nested barrels that create circular dependencies. Sort exports alphabetically.
@@ -109,6 +119,10 @@ dependency-injection `@Optional()`. Prefer an unambiguous project name such as
 - Select only required fields for performance-sensitive queries.
 - Do not apply `.lean()` mechanically when downstream code expects hydrated documents.
 - Avoid redundant plain-object conversions.
+- Enforce query-driven and covering indexes (`REQUIRED`):
+  - Audit every database index against actual queries, triggers, and uniqueness invariants; drop speculative or unused indexes to prevent write amplification and index bloat.
+  - Prefer PostgreSQL covering indexes (`CREATE INDEX ... ON table (key_cols) INCLUDE (projected_cols)`) paired with narrowed `SELECT` projections on hot and append-only read paths to achieve Index-Only Scans.
+  - Preserve PostgreSQL HOT updates by excluding frequently mutated columns (such as hot balance counters) from `INCLUDE (...)` on heavily updated tables.
 
 ## Documentation
 
