@@ -4,118 +4,53 @@ Single source of truth for coding agents (Codex, Claude Code, Antigravity / Gemi
 
 ## Overview
 
-<Describe the service purpose, transport (HTTP / microservice / worker), database/ORM, and external integrations.>
+<Describe service purpose, transport (HTTP / microservice / worker), database/ORM, and external integrations.>
 
-- **Layout:**
-  - `src/modules/` — domain feature modules
-  - `src/shared/` or `src/common/` — cross-cutting config, errors, filters, guards, pipes, utils
-  - `src/health/` — liveness and readiness probes (`/health`, `/ready`)
-  - `test/` — integration and e2e tests
-- **Commands:** Check `package.json` scripts first (typical: `npm run lint`, `npx tsc --noEmit`, `npm test`, `npm run test:e2e`, `npm run build`). Run the narrowest command that covers the change, and run full verification before finishing.
+- **Layout:** `src/modules/` (features), `src/common/` or `src/shared/` (cross-cutting), `src/health/` (`/health`, `/ready`), `test/` (integration/e2e).
+- **Commands:** Check `package.json` scripts (`lint`, `typecheck`, `test`, `test:e2e`, `build`). Run the narrowest target while iterating, and full verification once before finishing.
 
-## Project Rules
+## Tool & MCP Policy (Strict Opt-In)
 
-- Inspect `package.json`, the lockfile, `nest-cli.json`, `tsconfig.json`, and existing modules before proposing or applying changes; keep changes scoped and never run broad unrequested migrations.
-- Follow `team-nestjs-engineering-standards` for new and modified code:
-  - kebab-case filenames; `_`-prefixed private members (treat renaming untouched legacy private members as a separate `MIGRATION_TARGET`).
-  - Explicit role-suffixed naming everywhere: `*.entity.ts` (`UserEntity`), `*.schema.ts`, `*.util.ts`, `*.mapper.ts`, `*.constants.ts`, `*.types.ts`, `*.schemas.ts`, and full domain-qualified injected members (`_walletService`, `_databaseService`, `_configService` — never vague `_service`, `_db`, `_config`, or bare entity filenames).
-  - Strict file separation of concerns: keep types, constants, Zod/runtime schemas, pure helpers, mappers, and request vs. response DTOs in separate focused files rather than inside service/controller/guard/filter files.
-  - Query-driven & covering indexes: audit indexes against real queries/constraints, drop unused indexes, prefer `INCLUDE (...)` covering indexes paired with narrow `SELECT` projections, and keep hot mutable columns out of `INCLUDE` to preserve HOT updates.
-  - Strict decorator order: Routing -> Permission metadata -> Guards -> Interceptors/Pipes -> OpenAPI decorators -> Status code.
-  - `[Entity][Operation][BriefDescription]Dto` naming for new/modified DTOs.
+- **Never call MCP tools** (`call_mcp_tool`, `list_resources`, `read_resource`), inspect MCP schemas, or query external MCP servers (Jira, Confluence, MongoDB, MySQL, Redis, SonarQube, etc.) **unless the user explicitly names/requests that MCP tool or server in the current prompt**.
+- Use local workspace files, `git`, and local CLI tools by default.
+
+## Token & Context Hygiene
+
+- Search with `rg`/`grep` before reading files; read targeted line ranges instead of whole large files.
+- Never inspect `node_modules`, `dist`, `build`, `coverage`, maps, generated API specs (unless regenerating/verifying them), lockfiles (except version checks), or `.env` files.
+- Never log secrets, credentials, tokens, authorization headers, cookies, or raw connection URIs.
+- Do not duplicate helpers or leave unused parameters/exports/type-aliases; verify with `tsc --noEmit` (plus project dead-code/dup checks if configured).
+
+## Skill Routing (Load Only What Matches)
+
+Load **only** the skill(s) for the current task — never preload unrelated skills or read all reference/rule files upfront:
+
+| Task | Skill(s) to Load | Notes |
+| --- | --- | --- |
+| NestJS modules, controllers, DTOs, guards, config, Swagger | `team-nestjs-engineering-standards` | Read only the needed `references/*.md`; load `nestjs-best-practices` only for general DI/lifecycle/perf rules |
+| Drizzle ORM schemas, queries, transactions, migrations | `drizzle-best-practices` | Check `package.json` for `drizzle-orm` version (`0.45.x` vs `1.0.0-rc`); skip if not using Drizzle |
+| PostgreSQL indexes, row locks (`FOR UPDATE`, `SKIP LOCKED`), triggers, SQL tuning | `supabase-postgres-best-practices` | Skip if not using Postgres |
+| Branch, PR, or commit code review | `code-review` + `team-nestjs-engineering-standards` (`references/code-review-workflow.md`) | Single-pass review by default; sub-agents only if explicitly requested or diff > 15 files |
+| Hard / flaky bugs or performance regressions | `diagnosing-bugs` | Skip full loop for trivial typos or obvious stack traces |
+| Ultra-terse replies (`/caveman` or explicitly requested) | `caveman` | Do not load unless requested |
+
+**Precedence on conflict:** User prompt -> Security & data integrity -> Existing public/DB contracts & `package.json` versions -> This `AGENTS.md` -> `team-nestjs-engineering-standards` -> `nestjs-best-practices` / domain skills.
+
+## Engineering Rules
+
+- **NestJS & TypeScript:** Inspect `package.json` and `tsconfig.json` before coding; never use `any`; keep changes scoped (`MIGRATION_TARGET` issues are reported, not refactored unasked).
+  - `kebab-case` filenames; `_`-prefixed private members (for new/modified code); `[Entity][Operation][BriefDescription]Dto` naming.
+  - Explicit role suffixes (`*.entity.ts`, `*.schema.ts`, `*.util.ts`, `*.mapper.ts`, `*.constants.ts`, `*.types.ts`, `*.schemas.ts`) and domain-qualified injected members (`_walletService`, `_databaseService` — never `_service`, `_db`, `_config`).
+  - Strict separation of concerns: keep types, constants, schemas, utilities, mappers, and request/response DTOs in dedicated files rather than inside service/controller/guard/filter files.
+  - Query-driven & covering indexes: audit indexes against real queries/constraints, drop unused ones, pair `INCLUDE (...)` covering indexes with narrow `SELECT` projections, and keep hot mutable columns out of `INCLUDE` to preserve HOT updates.
+  - Decorator order: Routing -> Permission metadata -> Guards -> Interceptors/Pipes -> OpenAPI -> Status code.
   - Update Swagger/OpenAPI (`@nestjs/swagger`) in the same change as every HTTP contract change.
-  - Throw NestJS `HttpException` / domain HTTP exceptions (or the project's RPC exception mapping for microservices) instead of bare `new Error()` in controller/boundary flows; preserve the centralized error response contract.
-  - Never use `any` in authored application code.
-- Never read `.env` files; never log secrets, credentials, tokens, authorization headers, cookies, or raw connection URIs.
-- Do not inspect `node_modules`, `dist`, `build`, `coverage`, maps, or generated output. Read lockfiles only for dependency/version verification.
+  - Throw NestJS `HttpException` / domain exceptions at HTTP boundaries (never bare `new Error()`).
+  - Never use `@Optional()` on injected service/provider constructor params, or validation decorators on service/model constructors.
+- **Testing:** Update tests to match changed logic (never weaken app logic for outdated tests); prefer realistic fixtures and property tests for math/boundaries when appropriate.
+- **Git Commits:** `<type>(<scope>): <imperative summary < 72 chars>` (`<type>(*): ...` when > 10 files); types: `feat`, `fix`, `refactor`, `style`, `docs`, `test`, `chore`.
 
-## Skills
+## Communication
 
-Project skills live in `.agents/skills/` (or user-global skill directories). **Always load and follow the relevant skill(s) before designing, implementing, testing, or reviewing code:**
-
-### Primary Engineering & NestJS Standards
-
-- `team-nestjs-engineering-standards` — **Mandatory team baseline & override** for NestJS coding style, Swagger/OpenAPI contracts, configuration, Kubernetes health probes, statelessness, distributed-system failures, and findings-first code review.
-- `nestjs-best-practices` — General NestJS architecture baseline (overridden wherever `team-nestjs-engineering-standards` or this file specifies otherwise).
-- `nestjs`, `nestjs-feature`, `nestjs-modular-monolith`, `nestjs-production`, `nestjs-auth` — Module boundaries, feature scaffolding, production hardening, and auth/guard security.
-
-### Database & Persistence (apply when matching the stack)
-
-- `drizzle-best-practices` — Drizzle ORM schemas, transactions, and migrations (skip if the project does not use Drizzle).
-- `supabase-postgres-best-practices` — PostgreSQL indexing, locking, constraints, and query performance (skip if not using PostgreSQL).
-- `nestjs-data` — Data-access patterns within NestJS services.
-
-### Domain Design, Testing, Debugging & Review
-
-- `domain-modeling`, `codebase-design`, `backend-development` — Domain invariants, state machines, and API/module design.
-- `tdd` & `nestjs-testing` — Unit, integration, and e2e testing.
-- `code-review` — General review checklist, paired with `team-nestjs-engineering-standards` (`references/code-review-workflow.md` and `references/code-review-output.md`) for findings-first NestJS reviews.
-- `diagnosing-bugs` — Systematic root-cause debugging for concurrency, database, and distributed failures.
-
-### Communication & Architecture Graph
-
-- `caveman` — Ultra-compressed, technically exact responses when brevity mode applies.
-- `graphify` — Knowledge graph and architecture exploration when `graphify-out/` exists.
-
-### Skill Precedence & Decision Policy
-
-If rules or skills conflict, resolve in strict order (per `team-nestjs-engineering-standards/references/decision-policy.md`):
-
-1. Explicit user request and acceptance criteria
-2. Security, correctness, and data-integrity requirements
-3. Existing public contracts, installed package versions, and deployment constraints
-4. Project-local `AGENTS.md` (this file)
-5. `team-nestjs-engineering-standards`
-6. `nestjs-best-practices` and other domain skills
-7. General framework conventions
-
-Classify `team-nestjs-engineering-standards` rules as `REQUIRED` (new/modified code), `CONDITIONAL` (apply only when condition holds), or `MIGRATION_TARGET` (report/plan separately; do not refactor unrelated legacy code).
-
-## Git & Commit Conventions
-
-- **Format:** `<type>(<scope>): <short, imperative description>`
-- **10+ files rule:** if a commit affects more than 10 files, use `<type>(*): <short, imperative description>`.
-- **Types:** `feat`, `fix`, `refactor`, `style`, `docs`, `test`, `chore`
-- **Rules:**
-  - Lowercase type and scope; scope optional but recommended (module or file name).
-  - Imperative tone (`add`, `fix`, `update` — not `added`, `fixed`).
-  - Summary strictly under 72 characters.
-  - Atomic commits: one logical change each; never commit broken builds or secrets.
-
-## Testing Standards
-
-- Tests follow implementation, never the reverse. When logic changes, update tests, mocks, and assertions to match; never weaken new application logic to satisfy an outdated legacy test.
-- Prefer `@faker-js/faker` over hardcoded magic strings for IDs, identifiers, and timestamps when available/appropriate.
-- Add `fast-check` property-based tests next to unit cases for validation, monetary math, boundaries, hashing, or state invariants when appropriate.
-
-## No Duplicate or Dead Code
-
-Before writing any helper, retry, hash, serializer, validator, DTO, or client:
-
-- Search by behavior, not just name: query `graphify` when `graphify-out/` exists, then grep shared modules and the target module. Reuse or extend what exists.
-- When replacing logic or renaming: delete the old version, its exports, alias types, imports, and tests in the same change. Never keep compatibility type aliases (`export type OldName = NewName;`).
-- When extracting an interface, type, or helper out of a class file, export it only from the new file.
-- Never use `@Optional()` on constructor parameters of services, repositories, or providers.
-- Never place validation decorators (`@IsOptional()`, `@IsString()`, ...) on constructor parameters of domain models, entities, or services.
-- Never leave an unused parameter or class member.
-- Before calling a task done, check touched files:
-  - `npx tsc --noEmit --noUnusedLocals --noUnusedParameters`
-  - `npx -y knip@5 --reporter compact`
-  - `npx -y jscpd@4 src --ignore "**/*.spec.ts" --min-lines 6`
-
-## SonarQube Clean Code Guardrails
-
-- **Cognitive complexity (`typescript:S3776`):** at most 15.
-- **Max parameters (`typescript:S107`):** at most 7 per method.
-- **Regex safety (`typescript:S5869`, `typescript:S6353`, `typescript:S6594`):** with `/i`, do not write redundant `[a-zA-Z]`; use `\d` instead of `[0-9]`; prefer `RegExp.exec()` over `match()`.
-- **Node built-ins (`typescript:S7772`):** use the `node:` prefix (`node:crypto`, `node:path`, `node:fs`).
-- **Imports & returns (`typescript:S3863`, `typescript:S3516`):** merge imports from the same module; use `void` instead of branches returning identical dummy values.
-- **No hardcoded secrets (`secrets:S6697`):** none anywhere, including tests, mocks, and compose files.
-- **Subprocess security (`javascript:S6890`):** in scripts use `process.execPath`, not bare `node`/`npx`.
-- **Syntax:** no nested ternaries (`typescript:S3358`), use optional chaining (`typescript:S6582`), avoid redundant assignments (`typescript:S4165`), prefer `String.fromCodePoint()` (`typescript:S7758`) and `Number.parseFloat()` (`typescript:S7773`).
-- **Docker hardening (`docker:S6471`, `docker:S6505`, `docker:S7031`):** `npm ci --ignore-scripts`, merge consecutive `RUN` instructions, and run production stages as non-root (`USER node` with `--chown=node:node`).
-
-## Communication & Brevity
-
-- Follow `caveman`: concise, direct responses that preserve technical accuracy without filler or pleasantries.
-- **Direction (LTR):** keep Left-to-Right flow. When mixing Persian and English, never embed inline file links, identifiers, or English terms inside Persian sentences with parentheses. Put file paths, links, commands, and code on separate lines.
+- Keep responses concise, direct, and technically exact without filler or pleasantries.
+- **Direction (LTR):** Keep Left-to-Right flow; when mixing Persian and English, put file paths, links, commands, and code on separate lines rather than inside Persian parentheses.

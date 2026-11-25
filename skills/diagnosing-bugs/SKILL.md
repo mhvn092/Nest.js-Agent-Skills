@@ -5,9 +5,7 @@ description: Diagnosis loop for hard bugs and performance regressions. Use when 
 
 # Diagnosing Bugs
 
-A discipline for hard bugs. Skip phases only when explicitly justified.
-
-When exploring the codebase, read `GLOSSARY.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
+A discipline for hard or non-deterministic bugs and performance regressions. For trivial single-file typos or clear stack-trace bugs, skip directly to a failing test + fix; use the full 6-phase loop below when the root cause is unclear or flaky.
 
 ## Redact
 

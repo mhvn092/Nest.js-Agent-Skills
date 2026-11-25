@@ -10,6 +10,7 @@ param(
     [switch]$NoRules,
     [switch]$Gitignore,
     [switch]$Force,
+    [switch]$Prune,
     [switch]$DryRun
 )
 
@@ -45,6 +46,27 @@ try {
         throw "No skills matched -Only / -Exclude filters."
     }
 
+    $RetiredSkills = @(
+        "backend-development", "codebase-design", "domain-modeling", "graphify",
+        "nestjs", "nestjs-auth", "nestjs-data", "nestjs-feature",
+        "nestjs-modular-monolith", "nestjs-production", "nestjs-testing", "tdd"
+    )
+
+    function Prune-Skills([string]$DestParent) {
+        foreach ($Name in ($RetiredSkills + $Exclude)) {
+            if (-not $Name) { continue }
+            $Target = Join-Path $DestParent $Name
+            if (Test-Path $Target) {
+                if ($DryRun) {
+                    Write-Host "  [dry-run] prune -> $Target"
+                } else {
+                    Remove-Item -Path $Target -Recurse -Force
+                    Write-Host "  [prune] removed $Target"
+                }
+            }
+        }
+    }
+
     function Copy-Skill([System.IO.DirectoryInfo]$Src, [string]$DestParent) {
         $Dest = Join-Path $DestParent $Src.Name
         if ($DryRun) {
@@ -63,6 +85,7 @@ try {
 
         Write-Host "Installing $($SkillDirs.Count) skills into $SkillsDest ..."
         foreach ($S in $SkillDirs) { Copy-Skill $S $SkillsDest }
+        if ($Prune) { Prune-Skills $SkillsDest }
 
         if (-not $NoRules) {
             foreach ($Name in @("AGENTS.md", "GEMINI.md", "CLAUDE.md")) {
@@ -122,6 +145,7 @@ try {
         foreach ($T in $Targets) {
             Write-Host "Installing $($SkillDirs.Count) skills into $T ..."
             foreach ($S in $SkillDirs) { Copy-Skill $S $T }
+            if ($Prune) { Prune-Skills $T }
         }
         Write-Host "Done."
     }

@@ -5,9 +5,7 @@ description: Team NestJS backend engineering and code-review standards for codin
 
 # Team NestJS Engineering Standards
 
-Apply these standards together with the installed `nestjs-best-practices` skill. When rules
-conflict, use the precedence and decision process in
-[references/decision-policy.md](references/decision-policy.md).
+Apply these standards together with `nestjs-best-practices`. When rules conflict, follow [references/decision-policy.md](references/decision-policy.md). **Token rule:** read only the specific `references/*.md` file(s) needed for the current task.
 
 ## Required Workflow
 

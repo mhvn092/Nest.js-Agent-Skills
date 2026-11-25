@@ -1,18 +1,6 @@
 ---
 name: drizzle-best-practices
-description: |
-  Use this skill whenever the user is working with Drizzle ORM on PostgreSQL. This covers any mention of Drizzle, drizzle-orm, drizzle-kit, drizzle-zod, `pgTable`, `defineRelations`, `relations()`, `db.select()`, `db.query`, or insert/update/delete against Postgres.
-
-  Typical intents to trigger on:
-  - Designing or debugging Postgres table schemas, columns, identity PKs, enums, JSONB, arrays
-  - Modeling one-to-many or many-to-many relations and join tables in Drizzle
-  - Writing, optimizing, or preparing Drizzle queries (placeholders, `.prepare()`)
-  - Generating Zod validators from Drizzle tables
-  - Setting up TypeScript + Postgres projects (Neon, Supabase, postgres.js, node-postgres) with Drizzle
-  - Migrating from Prisma, TypeORM, or Sequelize **to Drizzle**
-  - Resolving Drizzle type errors; choosing between v1 RC and 0.45.x APIs
-
-  Do NOT trigger for Drizzle with MySQL/SQLite, raw SQL without an ORM, or other ORMs when Drizzle is not the target.
+description: Drizzle ORM on PostgreSQL — schemas (`pgTable`), relations (`defineRelations` in v1 RC or `relations()` in 0.45.x), queries, transactions, and `drizzle-kit` migrations. Check `package.json` for installed `drizzle-orm` version first; skip for MySQL/SQLite or other ORMs.
 license: MIT
 compatibility: TypeScript projects using Node.js or edge runtimes with drizzle-orm and a PostgreSQL database.
 metadata:

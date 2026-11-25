@@ -11,8 +11,7 @@
 - Never log secrets or raw variables ending in `_URI`.
 - Percent-encode reserved characters in URI components.
 
-Prefer `ConfigModule` with a custom validation function using `class-transformer`,
-`class-validator`, and `validateSync` when compatible with the installed versions.
+Prefer `ConfigModule` validation using the project's established schema library (Zod, or `class-validator` + `class-transformer` + `validateSync` when compatible with installed versions).
 
 ## Connection URI Policy
 

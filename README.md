@@ -1,8 +1,8 @@
 # Agents Skills & NestJS Engineering Kit
 
-Portable, offline-ready collection of **19 engineering skills**, **`AGENTS.md` / `GEMINI.md` / `CLAUDE.md` templates**, and **cross-platform installers** for **Antigravity / Gemini**, **Codex**, and **Claude Code**.
+Portable, offline-ready collection of **7 lean, non-conflicting engineering skills**, **`AGENTS.md` / `GEMINI.md` / `CLAUDE.md` templates**, and **cross-platform installers** for **Antigravity / Gemini**, **Codex**, and **Claude Code**.
 
-Built primarily for **NestJS** backend services (PostgreSQL / Drizzle, modular monoliths, financial/transactional systems, TDD, and structured code reviews), while remaining modular so you can exclude stack-specific skills per project.
+Built for **NestJS** backend services (PostgreSQL / Drizzle, strict engineering standards, root-cause debugging, and single-pass code reviews) with **task-based skill routing** and **opt-in-only MCP rules** to minimize token usage.
 
 ---
 
@@ -16,7 +16,7 @@ agents-skills/
 ├── install.sh                 # Linux / macOS installer (works from repo or zip)
 ├── install.ps1                # Windows PowerShell installer
 ├── nestjs-agent-kit.zip       # Single-file offline archive of skills, templates & installers
-├── skills/                    # 19 agent skills (SKILL.md + references)
+├── skills/                    # 7 lean agent skills (SKILL.md + references)
 │   ├── team-nestjs-engineering-standards/
 │   ├── nestjs-best-practices/
 │   ├── ...
@@ -81,6 +81,7 @@ Copy `nestjs-agent-kit.zip` (and optionally `install.sh`) to any machine, extrac
 | `--no-rules` | `-NoRules` | Install skills only; skip `AGENTS.md` / `GEMINI.md` / `CLAUDE.md` |
 | `--gitignore` | `-Gitignore` | Append AI tooling entries to target `.gitignore` if missing |
 | `--force` | `-Force` | Overwrite existing `AGENTS.md` / `GEMINI.md` / `CLAUDE.md` |
+| `--prune` | `-Prune` | Remove retired or excluded kit skills from the target directory |
 | `--dry-run` | `-DryRun` | Preview planned copies without modifying disk |
 
 **Global target paths (`--agents auto` vs `all`):**
@@ -94,48 +95,37 @@ Copy `nestjs-agent-kit.zip` (and optionally `install.sh`) to any machine, extrac
 
 ---
 
-## Included Skills (19)
+## Included Skills (7 Lean Core)
 
-### Team & NestJS Architecture
+### NestJS Architecture & Standards
 
 | Skill | Purpose |
 | --- | --- |
-| `team-nestjs-engineering-standards` | **Team override**: coding style, `_`-prefixed privates, decorator order, DTO naming, Swagger/OpenAPI sync, config, K8s health probes, statelessness, and code-review workflow |
-| `nestjs-best-practices` | General NestJS architecture, DI, lifecycle, security, performance, and API design baseline |
-| `nestjs` | Core NestJS CLI, module, and framework patterns |
-| `nestjs-feature` | Vertical feature module scaffolding |
-| `nestjs-modular-monolith` | Bounded contexts, module isolation, and shared vs domain boundaries |
-| `nestjs-production` | Graceful shutdown, logging, health checks, and production readiness |
-| `nestjs-auth` | Guards, authentication, authorization, and signature verification |
-| `nestjs-data` | Repository and data-access patterns in NestJS |
-| `nestjs-testing` | Unit, integration, and e2e testing with `@nestjs/testing` and `supertest` |
+| `team-nestjs-engineering-standards` | **Team baseline & override**: coding style, `_`-prefixed privates, decorator order, DTO naming, Swagger/OpenAPI sync, config, K8s health probes, statelessness, and code-review workflow |
+| `nestjs-best-practices` | General NestJS DI, lifecycle, security, and performance baseline (overridden by `team-nestjs-engineering-standards` on conflicts) |
 
 ### Database & Persistence
 
 | Skill | Purpose |
 | --- | --- |
-| `drizzle-best-practices` | Drizzle ORM schemas, transactions, parameterized queries, and migrations |
-| `supabase-postgres-best-practices` | PostgreSQL indexing, row locking (`FOR UPDATE`, `SKIP LOCKED`), constraints, and performance |
+| `drizzle-best-practices` | Drizzle ORM schemas, transactions, queries, and migrations (`0.45.x` and `1.0.0-rc`) |
+| `supabase-postgres-best-practices` | PostgreSQL indexing, row locking (`FOR UPDATE`, `SKIP LOCKED`), triggers, constraints, and query plan tuning |
 
-### Domain Design, Testing, Debugging & Review
-
-| Skill | Purpose |
-| --- | --- |
-| `backend-development` | Backend API, persistence, and service architecture guidance |
-| `domain-modeling` | Rich domain types, state machines, and invalid-state prevention |
-| `codebase-design` | Module boundaries, decoupling, and maintainable design |
-| `tdd` | Test-driven development workflow |
-| `code-review` | General code-review checklist (paired with `team-nestjs-engineering-standards` review guides) |
-| `diagnosing-bugs` | Systematic root-cause debugging |
-
-### Workflow & Communication
+### Debugging, Review & Communication
 
 | Skill | Purpose |
 | --- | --- |
-| `caveman` | Ultra-compressed, technically exact agent responses |
-| `graphify` | Persistent knowledge-graph codebase exploration (`graphify-out/`) |
+| `code-review` | Two-axis review (Standards + Spec); single-pass by default to save tokens, sub-agents only on large/requested diffs |
+| `diagnosing-bugs` | Systematic root-cause debugging for hard/flaky bugs and performance regressions |
+| `caveman` | Ultra-compressed, technically exact replies (loaded only when `/caveman` or brevity mode is requested) |
 
 ---
+
+## Token Optimization Built In
+
+- **Task-to-Skill Routing (`templates/AGENTS.md`):** Agents load only the skill(s) matching the active task instead of preloading every reference file.
+- **Strict MCP Opt-In (`templates/AGENTS.md`):** Agents must not call MCP tools or inspect MCP servers unless explicitly requested by the user in the current prompt.
+- **No Redundant Skills:** Conflicting/overlapping skills (`nestjs-modular-monolith`, `backend-development`, duplicate `nestjs-*` pack, `tdd`, `domain-modeling`, `codebase-design`, `graphify`) are removed.
 
 ## Skill Precedence
 
@@ -146,8 +136,7 @@ When rules conflict (defined in [templates/AGENTS.md](./templates/AGENTS.md) and
 3. Existing public contracts, installed package versions, and deployment constraints
 4. Project-local `AGENTS.md`
 5. `team-nestjs-engineering-standards`
-6. `nestjs-best-practices` and other domain skills
-7. General framework conventions
+6. `nestjs-best-practices` and domain skills
 
 ---
 

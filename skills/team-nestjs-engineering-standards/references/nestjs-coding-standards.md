@@ -57,7 +57,7 @@ nested barrels that create circular dependencies. Sort exports alphabetically.
 - Place feature DTOs under `src/modules/<module>/dto`.
 - Place only genuinely shared DTOs under `src/shared/dto`.
 - Prefer `[Entity][Operation][BriefDescription]Dto`, such as `UserUpdateEmailDto`.
-- Use `class-validator` and `class-transformer` when they are already part of the validation stack.
+- Use `class-validator` and `class-transformer` (or the project's established validation schema library) consistently across endpoints.
 - Fully document externally exposed DTO fields with the project's OpenAPI tooling.
 
 Generated DTOs and generated API clients are exempt from hand-authored naming rules. Change their
@@ -114,10 +114,10 @@ dependency-injection `@Optional()`. Prefer an unambiguous project name such as
 
 ## Performance
 
-- Use Mongoose `.lean()` for read-only queries that do not require document methods, hooks,
+- When using Mongoose, use `.lean()` for read-only queries that do not require document methods, hooks,
   virtuals, getters, or change tracking.
 - Select only required fields for performance-sensitive queries.
-- Do not apply `.lean()` mechanically when downstream code expects hydrated documents.
+- When using Mongoose, do not apply `.lean()` mechanically when downstream code expects hydrated documents.
 - Avoid redundant plain-object conversions.
 - Enforce query-driven and covering indexes (`REQUIRED`):
   - Audit every database index against actual queries, triggers, and uniqueness invariants; drop speculative or unused indexes to prevent write amplification and index bloat.

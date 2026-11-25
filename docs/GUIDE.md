@@ -56,9 +56,14 @@ The default template includes both NestJS skills and PostgreSQL/Drizzle skills. 
 
 - **MongoDB / Mongoose or TypeORM service:**
   ```bash
-  ./install.sh --project /path/to/mongo-service --exclude drizzle-best-practices,supabase-postgres-best-practices
+  ./install.sh --project /path/to/mongo-service --exclude drizzle-best-practices,supabase-postgres-best-practices --prune
   ```
-  Then remove those two bullets from the project's `AGENTS.md`.
+  Then remove those two rows from the **Skill Routing** table in the project's `AGENTS.md`.
+- **Upgrading an older install (remove retired skills):**
+  ```bash
+  ./install.sh --project /path/to/existing-service --prune
+  ./install.sh --global --agents auto --prune
+  ```
 - **Keep AI files out of a shared team repo:**
   Pass `--gitignore` during `--project` install (uses `templates/gitignore.snippet`), or keep skills installed via `--global`.
 - **Commit skills for team consistency:**
@@ -69,10 +74,10 @@ The default template includes both NestJS skills and PostgreSQL/Drizzle skills. 
 ## 4. Customizing `templates/AGENTS.md` After Install
 
 After running `./install.sh --project <dir>`, edit `<dir>/AGENTS.md` and fill in:
-1. `<PROJECT_NAME>` and **Overview** (transport: HTTP / NATS / RabbitMQ / gRPC; database/ORM; external providers).
-2. **Layout** (actual directories under `src/`, `test/`, `docs/`, `drizzle/`).
-3. **Commands** (exact scripts from `package.json`, e.g. `npm run lint`, `npm test`, `npm run test:e2e`, `npm run build`).
-4. **Project-Specific Rules** (financial invariants, read-only collections, auth guards, error response shapes, Swagger path).
+1. `<PROJECT_NAME>` and **Overview** (transport: HTTP / NATS / RabbitMQ / gRPC; database/ORM; external integrations).
+2. **Layout** and **Commands** (exact directories and `package.json` scripts).
+3. **Project-Specific Rules** (financial invariants, auth guards, error response shapes, Swagger path).
+4. **Skill Routing** & **Tool/MCP Policy** (remove unused DB rows; keep MCP opt-in-only unless explicitly needed).
 
 ---
 

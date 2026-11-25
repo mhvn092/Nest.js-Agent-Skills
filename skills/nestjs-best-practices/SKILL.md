@@ -9,7 +9,9 @@ metadata:
 
 # NestJS Best Practices
 
-Comprehensive best practices guide for NestJS applications. Contains 40 rules across 10 categories, prioritized by impact to guide automated refactoring and code generation.
+General NestJS baseline (40 rules across 10 categories). **Precedence:** `AGENTS.md` and `team-nestjs-engineering-standards` override these rules whenever they conflict (e.g., Drizzle/Prisma vs TypeORM examples, or project validation/auth choices).
+
+**Token rule:** Read only the specific `rules/*.md` file(s) relevant to the current task — do not load all rule files upfront.
 
 ## When to Apply
 

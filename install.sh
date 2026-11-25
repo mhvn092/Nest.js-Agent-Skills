@@ -9,6 +9,7 @@ GLOBAL_AGENTS="auto"
 INSTALL_RULES=true
 UPDATE_GITIGNORE=false
 FORCE=false
+PRUNE=false
 DRY_RUN=false
 ONLY_SKILLS=""
 EXCLUDE_SKILLS=""
@@ -40,6 +41,7 @@ Options:
   --no-rules           In --project mode, install skills only (skip AGENTS/GEMINI/CLAUDE.md)
   --gitignore          In --project mode, append AI tooling entries to .gitignore if missing
   --force              Overwrite existing AGENTS.md, GEMINI.md, CLAUDE.md in --project mode
+  --prune              Remove retired/excluded kit skills from the target directory
   --dry-run            Show planned actions without writing files
   -h, --help           Show this help message
 
@@ -79,6 +81,49 @@ should_install_skill() {
     return 1
   fi
   return 0
+}
+
+RETIRED_SKILLS=(
+  backend-development
+  codebase-design
+  domain-modeling
+  graphify
+  nestjs
+  nestjs-auth
+  nestjs-data
+  nestjs-feature
+  nestjs-modular-monolith
+  nestjs-production
+  nestjs-testing
+  tdd
+)
+
+prune_skills_dir() {
+  local dest_parent="$1"
+  local name
+  for name in "${RETIRED_SKILLS[@]}"; do
+    if [ -d "$dest_parent/$name" ]; then
+      if [ "$DRY_RUN" = true ]; then
+        echo "  [dry-run] prune retired -> $dest_parent/$name"
+      else
+        rm -rf "$dest_parent/$name"
+        echo "  [prune] removed retired $dest_parent/$name"
+      fi
+    fi
+  done
+  if [ -n "$EXCLUDE_SKILLS" ]; then
+    local IFS=','
+    for name in $EXCLUDE_SKILLS; do
+      if [ -d "$dest_parent/$name" ]; then
+        if [ "$DRY_RUN" = true ]; then
+          echo "  [dry-run] prune excluded -> $dest_parent/$name"
+        else
+          rm -rf "$dest_parent/$name"
+          echo "  [prune] removed excluded $dest_parent/$name"
+        fi
+      fi
+    done
+  fi
 }
 
 copy_skill_dir() {
@@ -163,6 +208,10 @@ while [ "$#" -gt 0 ]; do
       FORCE=true
       shift
       ;;
+    --prune)
+      PRUNE=true
+      shift
+      ;;
     --dry-run)
       DRY_RUN=true
       shift
@@ -244,6 +293,9 @@ if [ "$MODE" = "project" ]; then
   for skill_dir in "${SELECTED_SKILLS[@]}"; do
     copy_skill_dir "$skill_dir" "$SKILLS_DEST"
   done
+  if [ "$PRUNE" = true ]; then
+    prune_skills_dir "$SKILLS_DEST"
+  fi
   if [ "$DRY_RUN" != true ]; then
     echo "  [ok] installed ${#SELECTED_SKILLS[@]} skills"
   fi
@@ -313,6 +365,9 @@ else
     for skill_dir in "${SELECTED_SKILLS[@]}"; do
       copy_skill_dir "$skill_dir" "$dest_dir"
     done
+    if [ "$PRUNE" = true ]; then
+      prune_skills_dir "$dest_dir"
+    fi
     if [ "$DRY_RUN" != true ]; then
       echo "  [ok] installed ${#SELECTED_SKILLS[@]} skills into $dest_dir"
     fi
